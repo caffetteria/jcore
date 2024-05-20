@@ -8,6 +8,8 @@ import java.io.FilenameFilter;
 @Slf4j
 public class HelperLL {
 
+    private HelperLL() {}
+
     private static final String LLP = "java.library.path";
 
     public static int ll(String name ) {
