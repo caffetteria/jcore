@@ -26,11 +26,18 @@ jobs:
         server-username: MAVEN_USERNAME
         server-password: MAVEN_PASSWORD
     - name: Import gpg
-      run: echo -e "${{ secrets.PASSPHRASE }}" | echo -e "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --allow-secret-key-import --import
+      run: |
+        echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+    - name: Configure GPG
+      run: |
+        echo "use-agent" >> ~/.gnupg/gpg.conf
+        echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
+        echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
+        gpg-connect-agent reloadagent /bye
     - name: Build package
-      run: mvn clean install -P test,full
+      run: mvn clean install -P test,full -Dgpg.passphrase="${{ secrets.PASSPHRASE }}" -Dgpg.pinentry-mode=loopback
     - name: Publish package
-      run: mvn --batch-mode deploy -P doRelease
+      run: mvn --batch-mode deploy -P doRelease -Dgpg.passphrase="${{ secrets.PASSPHRASE }}" -Dgpg.pinentry-mode=loopback
       env:
         MAVEN_USERNAME: ${{ secrets.OSS_USERNAME }}
         MAVEN_PASSWORD: ${{ secrets.OSS_PASSWORD }}
